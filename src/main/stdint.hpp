@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include <boost/static_assert.hpp>
-
 /** C99 Standard Naming */
 #if defined(_MSC_VER)
     typedef signed char int8_t;
@@ -30,12 +28,12 @@
 #endif
 
 /* Report typedef errors */
-BOOST_STATIC_ASSERT_MSG(sizeof(int8_t)   == 1, "int8_t is not of the correct size" );
-BOOST_STATIC_ASSERT_MSG(sizeof(int16_t)  == 2, "int16_t is not of the correct size");
-BOOST_STATIC_ASSERT_MSG(sizeof(int32_t)  == 4, "int32_t is not of the correct size");
-BOOST_STATIC_ASSERT_MSG(sizeof(int64_t)  == 8, "int64_t is not of the correct size");
+static_assert(sizeof(int8_t)   == 1, "int8_t is not of the correct size" );
+static_assert(sizeof(int16_t)  == 2, "int16_t is not of the correct size");
+static_assert(sizeof(int32_t)  == 4, "int32_t is not of the correct size");
+static_assert(sizeof(int64_t)  == 8, "int64_t is not of the correct size");
 
-BOOST_STATIC_ASSERT_MSG(sizeof(uint8_t)  == 1, "int8_t is not of the correct size" );
-BOOST_STATIC_ASSERT_MSG(sizeof(uint16_t) == 2, "int16_t is not of the correct size");
-BOOST_STATIC_ASSERT_MSG(sizeof(uint32_t) == 4, "int32_t is not of the correct size");
-BOOST_STATIC_ASSERT_MSG(sizeof(uint64_t) == 8, "int64_t is not of the correct size");
+static_assert(sizeof(uint8_t)  == 1, "int8_t is not of the correct size" );
+static_assert(sizeof(uint16_t) == 2, "int16_t is not of the correct size");
+static_assert(sizeof(uint32_t) == 4, "int32_t is not of the correct size");
+static_assert(sizeof(uint64_t) == 8, "int64_t is not of the correct size");
