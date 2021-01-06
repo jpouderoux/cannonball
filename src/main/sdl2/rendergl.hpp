@@ -12,13 +12,31 @@
 
 #pragma once
 
-#include "renderbase.hpp"
 #include <SDL_opengl.h>
+#include "renderbase.hpp"
+
+struct __ShaderInfo
+{
+   GLuint program;
+   GLint u_vp_matrix;
+   GLint u_texture;
+   GLint a_position; // vertex_coord;
+   GLint a_texcoord; //	tex_coord;
+   GLint a_color;    // color
+   
+   GLint lut_tex_coord;
+
+   GLint input_size;
+   GLint output_size;
+   GLint texture_size;
+   GLfloat scanline_bright;
+};
 
 class Render : public RenderBase
 {
 public:
     Render();
+    ~Render();
     bool init(int src_width, int src_height, 
               int scale,
               int video_mode,
@@ -27,15 +45,23 @@ public:
     bool start_frame();
     bool finalize_frame();
     void draw_frame(uint16_t* pixels);
+    bool supports_window() { return false; }
 
 private:
     // Texture IDs
     const static int SCREEN = 0;
-    const static int SCANLN = 1;
 
-    GLuint textures[2];
-    GLuint dlist; // GL display list
+    GLuint buffers[3];
+    GLuint texture;
 
-    SDL_GLContext glcontext;
-    SDL_Window *window;
+    struct __ShaderInfo shader; 
+   
+    void init_shaders(unsigned texture_width, unsigned texture_height, unsigned output_width, unsigned output_height, int scanlines);
+
+    GLuint CreateProgram(const char *vertex_shader_src, const char *fragment_shader_src);
+    GLuint CreateShader(GLenum type, const char *shader_src);
+    void SetOrtho(float m[4][4], float left, float right, float bottom, float top, float near, float far, float scale_x, float scale_y);
+
+   SDL_GLContext glcontext;
+   SDL_Window *window;
 };

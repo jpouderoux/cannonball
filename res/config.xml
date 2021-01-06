@@ -136,10 +136,10 @@
     
     <!-- Keyboard Button Configuration. Easiest to configure with inbuilt menu. -->
     <keyconfig>
-        <up>273</up>
-        <down>274</down>
-        <left>276</left>
-        <right>275</right>
+        <up>1073741906</up>
+        <down>1073741905</down>
+        <left>1073741904</left>
+        <right>1073741903</right>
         <acc>122</acc>
         <brake>120</brake>
         <gear1>32</gear1>
