@@ -21,8 +21,6 @@ set(OPENGLES 1)
 
 # Platform Specific Libraries
 set(platform_link_libs
-    "${angle_dir}/libEGL.dll.lib"
-    "${angle_dir}/libGLESv2.dll.lib"
     dxguid   # Direct X Haptic Support
     dinput8  # Direct X Haptic Support
 )

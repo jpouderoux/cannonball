@@ -5,19 +5,20 @@
 # Everything should go into a win64.cmake equivalent.
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 3.18) # Might compile lower, but untested
-project (cannonball)
+cmake_minimum_required(VERSION 3.16) # Might compile lower, but untested
+project(cannonball CXX)
 
 # -----------------------------------------------------------------------------
 # Directory Setup
 # -----------------------------------------------------------------------------
 
 # CMake files 
-set(DCMAKE win64-opengl.cmake)
-set(CMDIR ../cmake)
+set(DCMAKE win64-opengl)
+set(CMDIR ${CMAKE_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMDIR})
 
 # Source location
-set(main_cpp_base ../src/main)
+set(main_cpp_base src/main)
 
 # -----------------------------------------------------------------------------
 # Platform Specific Setup
@@ -25,8 +26,8 @@ set(main_cpp_base ../src/main)
 
 # Include relevant CMAKE file (default, mingw, pandora etc.)
 if(TARGET)
-    set(TCMAKE ${TARGET}.cmake)
-    if(EXISTS ${CMDIR}/${TCMAKE})
+    set(TCMAKE ${TARGET})
+    if(EXISTS ${CMDIR}/${TCMAKE}.cmake)
         message("CMake files for ${TARGET} found, using ${TCMAKE}")
         include(${TCMAKE})
     else()
@@ -35,7 +36,7 @@ if(TARGET)
     endif()
 else()
     message("TARGET not passed, using ${DCMAKE}")
-    include(${DCMAKE})
+    include(cmake/${DCMAKE})
 endif(TARGET)
 
 # -----------------------------------------------------------------------------
@@ -59,7 +60,7 @@ set(src_main
     "${main_cpp_base}/roms.cpp"
     "${main_cpp_base}/video.cpp"
     "${main_cpp_base}/utils.cpp"
-    )
+)
 
 set(src_frontend
     "${main_cpp_base}/frontend/cabdiag.hpp"
@@ -71,7 +72,7 @@ set(src_frontend
     "${main_cpp_base}/frontend/config.cpp"
     "${main_cpp_base}/frontend/menu.cpp"
     "${main_cpp_base}/frontend/ttrial.cpp"
-    )
+)
 
 set(src_hwvideo
     "${main_cpp_base}/hwvideo/hwroad.hpp"
@@ -81,7 +82,7 @@ set(src_hwvideo
     "${main_cpp_base}/hwvideo/hwroad.cpp"
     "${main_cpp_base}/hwvideo/hwsprites.cpp"
     "${main_cpp_base}/hwvideo/hwtiles.cpp"
-    )
+)
     
 set(src_hwaudio
     "${main_cpp_base}/hwaudio/segapcm.hpp"
@@ -91,7 +92,7 @@ set(src_hwaudio
     "${main_cpp_base}/hwaudio/segapcm.cpp"
     "${main_cpp_base}/hwaudio/soundchip.cpp"
     "${main_cpp_base}/hwaudio/ym2151.cpp"
-    )
+)
 
 set(src_sdl
 	"${main_cpp_base}/sdl2/audio.hpp"
@@ -103,7 +104,7 @@ set(src_sdl
 	"${main_cpp_base}/sdl2/timer.cpp"
 	"${main_cpp_base}/sdl2/input.cpp"
 	"${main_cpp_base}/sdl2/renderbase.cpp"
-    )
+)
    
 if(OPENGL)
 	set(src_render
@@ -188,7 +189,7 @@ set(src_engine
     "${main_cpp_base}/engine/otraffic.cpp"
     "${main_cpp_base}/engine/outils.cpp"
     "${main_cpp_base}/engine/outrun.cpp"
-    )
+)
 
 set(src_engine_audio
     "${main_cpp_base}/engine/audio/commands.hpp"
@@ -198,7 +199,7 @@ set(src_engine_audio
 
     "${main_cpp_base}/engine/audio/osound.cpp"
     "${main_cpp_base}/engine/audio/osoundint.cpp"
-    )
+ )
 
 set(SRCS
     ${src_main}
@@ -227,7 +228,7 @@ SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
 # Add Icon For Windows Builds
 if(WIN32)
-  set(SRCS ${SRCS} ../res/cannonball.rc)
+  list(APPEND SRCS ../res/cannonball.rc)
 endif(WIN32)
 
 add_executable(cannonball ${SRCS})
@@ -236,43 +237,44 @@ add_executable(cannonball ${SRCS})
 # Compiler Definitions
 # -----------------------------------------------------------------------------
 
-if(OPENGL)
-    add_definitions(-DWITH_OPENGL)
-endif()
-
 if(OPENGLES)
-    add_definitions(-DWITH_OPENGLES)
+    target_compile_definitions(cannonball PUBLIC -DWITH_OPENGLES)
 endif()
 
 if(CANNONBOARD)
-    add_definitions(-DCANNONBOARD)
+    target_compile_definitions(cannonball PUBLIC -DCANNONBOARD)
 endif()
 
 # -----------------------------------------------------------------------------
 # Library Setup
 # -----------------------------------------------------------------------------
 
-set(BOOST_INCLUDEDIR ${boost_dir})
 find_package(Boost REQUIRED)
-
-set(SDL2_DIR ${sdl2_dir})
 find_package(SDL2 REQUIRED)
-message("SDL2 Include  : ${SDL2_INCLUDE_DIRS}")
-message("SDL2 Libraries: ${SDL2_LIBRARIES}")
+
+if(OPENGL)
+    find_package(OpenGL REQUIRED)
+    find_package(GLEW REQUIRED)
+    target_compile_definitions(cannonball PUBLIC -DWITH_OPENGL)
+    list(APPEND platform_link_libs OpenGL GLEW)
+elseif(OPENGLES)
+    find_package(OpenGLES REQUIRED) 
+    target_compile_definitions(cannonball PUBLIC -DWITH_OPENGLES)
+    list(APPEND platform_link_libs OpenGLES GLEW)
+endif()
 
 # Include
-include_directories(
+target_include_directories(cannonball PRIVATE
     ${main_cpp_base}
-    ${BOOST_INCLUDEDIR}
-    ${SDL2_INCLUDE_DIRS}
 )
 
-link_directories(
+target_link_directories(cannonball PRIVATE
     ${platform_link_dirs}
 )
 
-target_link_libraries(cannonball
-    ${SDL2_LIBRARIES}
+target_link_libraries(cannonball PRIVATE
+    Boost::boost
+    SDL2::SDL2
     ${platform_link_libs}
 )
 
@@ -280,13 +282,14 @@ target_link_libraries(cannonball
 # Copy useful files to build destination
 # -----------------------------------------------------------------------------
 
-configure_file(../res/config.xml ./config.xml 
+configure_file(${CMAKE_SOURCE_DIR}/res/config.xml ./config.xml 
     COPYONLY
 )
 
-configure_file(../res/tilemap.bin ./res/tilemap.bin
+configure_file(${CMAKE_SOURCE_DIR}/res/tilemap.bin ./res/tilemap.bin
     COPYONLY 
 )
-configure_file(../res/tilepatch.bin ./res/tilepatch.bin
+
+configure_file(${CMAKE_SOURCE_DIR}/res/tilepatch.bin ./res/tilepatch.bin
     COPYONLY 
 )
